@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Vehicle-Customer Billing Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #2c3e50;
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #2980b9;
+        }
+        
+        header h1 {
+            font-size: 36px;
+            color: #2980b9;
+            margin: 0;
+            font-weight: 700;
+        }
+        
+        header p {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin: 10px 0 0;
+        }
+        
+        .report-filter {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px 40px;
+            max-width: 600px;
+            margin: 0 auto 50px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+            text-align: center;
+        }
+        
+        .report-filter label {
+            display: inline-block;
+            margin-right: 10px;
+            font-weight: 600;
+        }
+        
+        input[type="date"],
+        input[type="text"]#veh_no {
+            padding: 10px;
+            border: 1.8px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        input[type="date"]:focus,
+        input[type="text"]#veh_no:focus {
+            border-color: #2980b9;
+            outline: none;
+            box-shadow: 0 0 6px #2980b9;
+        }
+        
+        input[type="text"]#veh_no {
+            width: 60%;
+            max-width: 300px;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+        
+        button.btn {
+            margin-top: 25px;
+            padding: 14px 32px;
+            font-size: 17px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2980b9;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(41, 128, 185, 0.4);
+            transition: background-color 0.3s ease;
+        }
+        
+        button.btn:hover {
+            background-color: #1c5d8f;
+        }
+        
+        .btn.print {
+            margin: 30px auto 50px;
+            display: block;
+        }
+        
+        h2.vehicle-title {
+            text-align: center;
+            margin: 50px auto 20px;
+            font-size: 26px;
+            font-weight: 700;
+            color: #2c3e50;
+            background-color: #ecf0f1;
+            padding: 12px 20px;
+            border-radius: 8px;
+            width: fit-content;
+            border-left: 6px solid #2980b9;
+        }
+        
+        table {
+            width: 90%;
+            max-width: 900px;
+            margin: 0 auto 50px;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.07);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        th,
+        td {
+            padding: 16px 24px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        thead {
+            background-color: #2980b9;
+            color: #fff;
+        }
+        
+        tbody tr:nth-child(odd) {
+            background-color: #f7f9fc;
+        }
+        
+        tbody tr:hover {
+            background-color: #d6eaf8;
+        }
+        
+        .currency {
+            font-weight: 700;
+            color: #27ae60;
+        }
+        
+        .total-row {
+            font-weight: bold;
+            background: #ecf0f1;
+            border-top: 3px solid #95a5a6;
+        }
+        
+        .no-data {
+            text-align: center;
+            font-size: 20px;
+            color: #7f8c8d;
+            margin-top: 60px;
+            font-style: italic;
+        }
+        
+        footer {
+            text-align: center;
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 80px;
+        }
+        /* Summary card for grand total */
+        
+        .summary-card {
+            max-width: 400px;
+            margin: 0 auto 80px;
+            padding: 25px 35px;
+            background: #27ae60;
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            border-radius: 14px;
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.5);
+            user-select: none;
+        }
+        
+        @media print {
+            .btn,
+            .print,
+            .report-filter {
+                display: none !important;
+            }
+            body {
+                background: #fff;
+                padding: 0;
+                color: #000;
+            }
+            header h1,
+            h2.vehicle-title {
+                color: #000;
+            }
+            table {
+                box-shadow: none;
+            }
+            footer {
+                margin-top: 40px;
+                color: #000;
+            }
+            .summary-card {
+                box-shadow: none;
+                background: #000;
+                color: #fff;
+                border-radius: 0;
+            }
+            @page {
+                margin: 1in;
+                @bottom-left {
+                    content: "Page " counter(page) " of " counter(pages);
+                }
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Vehicle-Customer Billing Report</h1>
+        <p>Reporting Period:
+            <strong id="startdate">{{ request.args.get('start_date') or today }}</strong> to
+            <strong id="enddate">{{ request.args.get('end_date') or today }}</strong>
+        </p>
+    </header>
+
+    <section class="report-filter">
+        <form method="GET" action="{{ url_for('vehicle_cust_repo') }}">
+            <label for="start_date">From:</label>
+            <input type="date" id="start_date" name="start_date" value="{{ request.args.get('start_date') or today }}" />
+            <label for="end_date">To:</label>
+            <input type="date" id="end_date" name="end_date" value="{{ request.args.get('end_date') or today }}" /><br>
+            <label for="veh_no">Vehicle No:</label>
+            <input type="text" id="veh_no" name="veh_no" value="{{ request.args.get('veh_no', '') }}" />
+
+            <br />
+            <button type="submit" class="btn">Show Report</button>
+        </form>
+    </section>
+
+    {% if grouped_data %}
+    <button class="btn print" onclick="window.print()">Print / Export to PDF</button> {% set ns = namespace(grand_total=0) %} {% for vehicle_no, bills in grouped_data.items() %}
+    <h2 class="vehicle-title">Vehicle No: {{ vehicle_no }}</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Bill NO</th>
+                <th>Customer Name</th>
+                <th>Bill Amount (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set vehicle_total = namespace(total=0) %} {% for bill in bills %}
+            <tr>
+                <td>{{ bill.bill_no }}</td>
+                <td>{{ bill.customer_name }}</td>
+                <td class="currency">₹{{ "%.2f"|format(bill.grand_total) }}</td>
+            </tr>
+            {% set vehicle_total.total = vehicle_total.total + bill.grand_total %} {% set ns.grand_total = ns.grand_total + bill.grand_total %} {% endfor %}
+            <tr class="total-row">
+                <td></td>
+                <td>Total</td>
+                <td class="currency">₹{{ "%.2f"|format(vehicle_total.total) }}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% endfor %}
+
+    <div class="summary-card">
+        Grand Total Across All Vehicles: ₹{{ "%.2f"|format(ns.grand_total) }}
+    </div>
+
+    <footer>
+        Report generated on <strong id='date'>{{ today }}</strong><br /> Powered by Vehicle Billing System
+    </footer>
+
+    {% else %}
+    <p class="no-data">No billing data available for the selected date range.</p>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='vehCustRepo.js') }}"></script>
+
+</body>
+
+</html>

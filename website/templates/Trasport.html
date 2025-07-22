@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Projects - Python</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap');
+        body {
+            margin: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        nav {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 25px;
+            margin: 0;
+            padding: 0;
+        }
+        
+        nav ul li a {
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+        
+        nav ul li a:hover {
+            color: #ffd700;
+        }
+        
+        @media (max-width: 720px) {
+            nav {
+                padding: 15px 20px;
+            }
+            nav ul {
+                gap: 15px;
+            }
+        }
+        
+        .intro {
+            text-align: center;
+            margin: 30px 20px 10px;
+            font-size: 1.2rem;
+        }
+        
+        .container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        
+        .card h2 {
+            margin-bottom: 30px;
+            font-weight: 600;
+            color: #764ba2;
+        }
+        
+        .card button {
+            width: 100%;
+            margin-top: 15px;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            background-color: #667eea;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .card button:hover {
+            background-color: #556cd6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <ul>
+            <li style="align-content: center;">
+                Welcom , {{ username }}.
+            </li>
+            <li><a href="{{ url_for('add_bill') }}">Traspoter Entry</a></li>
+            <li><a href="{{ url_for('vehicle_report') }}">Vehicle Report</a></li>
+            <li><a href="{{ url_for('vehicle_cust_repo') }}">Vehicle Customer Report</a></li>
+            <li><a href="{{ url_for('add_customer') }}">Master Setup</a></li>
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        </ul>
+    </nav>
+
+
+
+
+</body>
+
+</html>

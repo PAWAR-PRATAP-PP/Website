@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Vehicle Report</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap');
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        nav {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 25px;
+            margin: 0;
+            padding: 0;
+        }
+        
+        nav ul li {
+            display: inline;
+        }
+        
+        nav ul li a {
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        
+        nav ul li a:hover {
+            color: #ffd700;
+        }
+        
+        .container {
+            flex: 1;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        table {
+            width: 100%;
+            max-width: 900px;
+            border-collapse: collapse;
+            background-color: white;
+            color: #333;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        th,
+        td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #667eea;
+            color: white;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tfoot td {
+            font-weight: bold;
+            background-color: #f3f3f3;
+        }
+        
+        .no-data {
+            margin-top: 40px;
+            font-size: 1.2rem;
+            color: #fff8;
+        }
+        
+        @media (max-width: 768px) {
+            th,
+            td {
+                padding: 10px;
+            }
+        }
+        
+        .print-button {
+            display: block;
+            margin: 0 auto 40px;
+            padding: 12px 28px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .print-button:hover {
+            background-color: #0056b3;
+        }
+        
+        @media print {
+            .print-button {
+                display: none;
+            }
+            .menu {
+                display: none;
+            }
+            body {
+                background: #fff;
+                padding: 0;
+            }
+            h1,
+            h2 {
+                color: #000;
+            }
+            table {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="menu">
+        <div>Welcome, {{ username }}.</div>
+        <ul>
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('add_bill') }}">Transporter Entry</a></li>
+            <li><a href="{{ url_for('projects') }}">Projects</a></li>
+            <li><a href="{{ url_for('settings') }}">Settings</a></li>
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2>Vehicle-wise Bill Report</h2>
+        <button class="print-button" onclick="window.print()">Print / Export to PDF</button> {% if vehicle_data %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Vehicle Number</th>
+                    <th>Total Bills</th>
+                    <th>Total Amount (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set ns = namespace(grand_total=0) %} {% for row in vehicle_data %}
+                <tr>
+                    <td>{{ row.vehicle_no }}</td>
+                    <td>{{ row.total_bills }}</td>
+                    <td>{{ row.total_amount | round(2) }}</td>
+                </tr>
+                {% set ns.grand_total = ns.grand_total + row.total_amount %} {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2">Grand Total</td>
+                    <td>₹{{ ns.grand_total | round(2) }}</td>
+                </tr>
+            </tfoot>
+
+        </table>
+        {% else %}
+        <div class="no-data">No data found for any vehicle.</div>
+        {% endif %}
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Register License</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+            padding: 50px;
+        }
+        
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        
+        form {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            max-width: 400px;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        textarea {
+            resize: vertical;
+        }
+        
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>License Registration Form</h2>
+    <form method="post">
+        {% if error %}
+        <p style="color:red;">{{ error }}</p>
+        {% endif %}
+
+
+        <label for="license_key">License Key:</label>
+        <input type="text" name="license_key" id="license_key" required>
+
+        <label for="name">Name:</label>
+        <input type="text" name="name" id="name" required>
+
+        <label for="email">Email ID:</label>
+        <input type="email" name="email" id="email" required>
+
+        <label for="mobile">Mobile No:</label>
+        <input type="text" name="mobile" id="mobile" required>
+
+        <label for="address">Address:</label>
+        <textarea name="address" id="address" rows="4" required></textarea>
+
+        <label for="pin_code">Pin Code:</label>
+        <input type="text" name="pin_code" id="pin_code" required>
+
+        <label for="gst_number">GST Number:</label>
+        <input type="text" name="gst_number" id="gst_number" required>
+
+        <input type="submit" value="Register">
+    </form>
+</body>
+
+</html>

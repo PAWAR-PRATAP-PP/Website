@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Edit Customer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        
+        label {
+            font-weight: bold;
+        }
+        
+        input {
+            padding: 5px;
+            width: 300px;
+        }
+        
+        button {
+            padding: 8px 12px;
+            margin-top: 10px;
+        }
+        
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: blue;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Add Customer</h2>
+    <form method="POST">
+        <label>Name:<br>
+    <input type="text" name="name" required>
+  </label><br><br>
+
+        <label>Email:<br>
+    <input type="email" name="email" required>
+  </label><br><br>
+
+        <label>Phone:<br>
+    <input type="text" name="phone">
+  </label><br><br>
+
+        <button type="submit">Add Customer</button>
+    </form>
+    <a href="{{ url_for('cust_lst') }}">Back to Customers</a>
+
+</body>
+
+</html>
