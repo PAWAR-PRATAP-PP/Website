@@ -10,15 +10,48 @@
         * {
             box-sizing: border-box;
         }
+        nav {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 25px;
+            margin: 0;
+            padding: 0;
+        }
+        
+        nav ul li {
+            display: inline;
+        }
+        
+        nav ul li a {
+            text-decoration: none;
+            color:rgb(74, 100, 228);
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        
+        nav ul li a:hover {
+            color: #ffd700;
+        }
+        
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
-            color: #2c3e50;
             margin: 0;
-            padding: 40px 20px;
-            line-height: 1.6;
+            background: linear-gradient(135deg,rgb(245, 245, 247) 0%,rgb(67, 186, 222) 100%);
+            font-family: 'Poppins', sans-serif;
+            color: black;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         
         header {
@@ -221,14 +254,26 @@
                     content: "Page " counter(page) " of " counter(pages);
                 }
             }
-        }
+        } 
+
     </style>
 </head>
 
 <body>
+    <nav class="menu">
+        <div>Welcome, {{ username }}.</div>
+        <ul>
+            <li><a href="{{ url_for('transport') }}">Home</a></li>
+            <li><a href="{{ url_for('add_bill') }}">Transporter Entry</a></li>
+            <li><a href="{{ url_for('projects') }}">Projects</a></li>
+            <li><a href="{{ url_for('settings') }}">Settings</a></li>
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        </ul>
+    </nav>
 
     <header>
-        <h1>Vehicle-Customer Billing Report</h1>
+        <h2>Vehicle-Customer Billing Report</h2>
+        
         <p>Reporting Period:
             <strong id="startdate">{{ request.args.get('start_date') or today }}</strong> to
             <strong id="enddate">{{ request.args.get('end_date') or today }}</strong>
@@ -250,28 +295,45 @@
     </section>
 
     {% if grouped_data %}
-    <button class="btn print" onclick="window.print()">Print / Export to PDF</button> {% set ns = namespace(grand_total=0) %} {% for vehicle_no, bills in grouped_data.items() %}
+    <button class="btn print" onclick="window.print()">Print / Export to PDF</button> 
+    <button class="btn print" onclick="exportAllTablesToExcel()">Export to Excel</button>
+    {% set ns = namespace(grand_total=0,total_qty=0) %} 
+    {% for vehicle_no, bills in grouped_data.items() %}
     <h2 class="vehicle-title">Vehicle No: {{ vehicle_no }}</h2>
 
     <table>
+
         <thead>
             <tr>
+                <th>SR NO</th>
                 <th>Bill NO</th>
                 <th>Customer Name</th>
+                <th>Billl Qty</th>
                 <th>Bill Amount (₹)</th>
             </tr>
         </thead>
         <tbody>
-            {% set vehicle_total = namespace(total=0) %} {% for bill in bills %}
+            
+
+            {% set vehicle_total = namespace(total=0,qty=0) %} {% for bill in bills %}
             <tr>
+                <td>{{ loop.index }}</td>
                 <td>{{ bill.bill_no }}</td>
                 <td>{{ bill.customer_name }}</td>
+                <td>{{ bill.total_qty | int }}</td>
                 <td class="currency">₹{{ "%.2f"|format(bill.grand_total) }}</td>
             </tr>
-            {% set vehicle_total.total = vehicle_total.total + bill.grand_total %} {% set ns.grand_total = ns.grand_total + bill.grand_total %} {% endfor %}
+            {% set vehicle_total.total = vehicle_total.total + bill.grand_total %}
+            {% set vehicle_total.qty = vehicle_total.qty + bill.total_qty %}
+
+            {% set ns.grand_total = ns.grand_total + bill.grand_total %} 
+            {% set ns.total_qty = ns.total_qty + bill.total_qty %}
+            {% endfor %}
             <tr class="total-row">
                 <td></td>
+                <td></td>
                 <td>Total</td>
+                <td class="qty">{{ vehicle_total.qty | int}}</td>
                 <td class="currency">₹{{ "%.2f"|format(vehicle_total.total) }}</td>
             </tr>
         </tbody>
@@ -290,6 +352,7 @@
     <p class="no-data">No billing data available for the selected date range.</p>
     {% endif %}
 
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="{{ url_for('static', filename='vehCustRepo.js') }}"></script>
 
 </body>

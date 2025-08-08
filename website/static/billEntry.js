@@ -1,21 +1,55 @@
 function cloneRow() {
-    const row = document.querySelector('#items tbody tr').cloneNode(true);
+    const tbody = document.querySelector('#item-body');
+    if (!tbody) return;
 
-    row.querySelectorAll('input').forEach(i => i.value = '');
-    document.querySelector('#items tbody').appendChild(row);
-    const firstInput = row.querySelector('item');
+    const originalRow = tbody.querySelector('tr');
+    if (!originalRow) return;
+
+    const newRow = originalRow.cloneNode(true);
+
+    // Clear input values and reset specific logic
+    newRow.querySelectorAll('input').forEach(input => {
+        const name = input.name;
+
+        if (name === 'item_id[]') {
+            input.value = '0'; // Reset item ID
+        } else if (name === 'amount[]') {
+            input.value = ''; // Clear calculated amount
+        } else if (name === 'item_name[]' || name === 'unit[]' || name === 'qty[]' || name === 'rate[]') {
+            input.value = ''; // Clear user-entered fields
+        }
+
+        // Remove duplicate IDs (like item_alert)
+        if (input.id) input.removeAttribute('id');
+    });
+
+    // Also remove alert div if present (optional)
+    const alertDiv = newRow.querySelector('.alert');
+    if (alertDiv) {
+        alertDiv.style.display = 'none';
+        alertDiv.innerText = '';
+        alertDiv.removeAttribute('id'); // Avoid duplicate IDs
+    }
+
+    tbody.appendChild(newRow);
+
+    const firstInput = newRow.querySelector('input[name="item_name[]"]');
     if (firstInput) {
         firstInput.focus();
     }
 }
 
+
 // Remove row
 function removeRow(btn) {
-    if (document.querySelectorAll('#items tbody tr').length > 1) {
+    const tbody = document.getElementById('item-body');
+    if (tbody.rows.length > 1) {
         btn.closest('tr').remove();
         updateTotals();
     }
 }
+
+
 
 // Calculate row amount & totals
 function updateRow(el) {
@@ -103,3 +137,30 @@ document.getElementById("from_location").addEventListener("blur", function() {
 document.getElementById("to_location").addEventListener("blur", function() {
     validateLocation("to_location", "to_location_alert");
 });
+
+
+
+
+// document.getElementById("item_name").addEventListener("blur", function() {
+//     const itemName = this.value;
+//     const input = this;
+
+//     fetch("/check_item", {
+//             method: "POST",
+//             headers: {
+//                 "Content-Type": "application/json",
+//             },
+//             body: JSON.stringify({ item_name: itemName }),
+//         })
+//         .then(response => response.json())
+//         .then(data => {
+//             const alertBox = document.getElementById("item_alert");
+//             if (!data.exists) {
+//                 alertBox.innerText = `Item '${itemName}' not found. Please select a valid Item.`;
+//                 alertBox.style.display = "block";
+//                 input.focus();
+//             } else {
+//                 alertBox.style.display = "none";
+//             }
+//         });
+// });

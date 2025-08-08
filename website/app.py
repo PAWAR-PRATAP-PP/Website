@@ -1,8 +1,9 @@
 import datetime
 from functools import wraps
+import io
 import os
 import PyPDF2
-from flask import Flask, json, jsonify, render_template, render_template_string, request, redirect, session, url_for, flash
+from flask import Flask, Response, json, jsonify, render_template, render_template_string, request, redirect, session, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 import requests
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,6 +14,10 @@ import json
 from sqlalchemy import text
 from collections import defaultdict
 from datetime import datetime
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 
 
 
@@ -162,6 +167,20 @@ def add_customer():
     
     return render_template('masterSetup.html',username=session['username'])
 
+@app.route('/edit/<int:cust_id>', methods=['GET', 'POST'])
+def edit_customer(cust_id):
+    customer = Customer.query.get_or_404(cust_id)
+
+    if request.method == 'POST':
+        customer.name = request.form['name']
+        customer.email = request.form['email']
+        customer.phone = request.form['phone']
+        db.session.commit()
+        return redirect(url_for('cust_lst'))
+
+    return render_template('masterSetup.html', customer=customer)
+
+
 @app.route('/chat_bot')
 def chat_bot():
     ip_address = "http://192.168.1.75:5001"
@@ -227,6 +246,113 @@ def transport():
     return render_template('Trasport.html', username=session['username'])
 
 
+@app.route('/today_customer_chart')
+@login_required
+def today_customer_chart():
+    today = datetime.today().date()
+
+    result = (
+        db.session.query(
+            Bill.customer_name,
+            db.func.sum(Bill.grand_total).label('total_amount')
+        )
+        .filter(Bill.date == today)
+        .group_by(Bill.customer_name)
+        .all()
+    )
+    
+    customers = [row.customer_name for row in result]
+    amounts = [row.total_amount for row in result]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    bars = ax.bar(customers, amounts, color='mediumslateblue', edgecolor='black', alpha=0.8)
+    
+    
+    ax.grid(axis='y', linestyle='--', alpha=0.7)
+    
+    
+    for bar in bars:
+        height = bar.get_height()
+        ax.annotate(f'{height:,.2f}',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 5),  
+                    textcoords="offset points",
+                    ha='center', va='bottom',
+                    fontsize=9,
+                    color='black')
+    
+    ax.set_title("Today's Customer-wise Billing", fontsize=16, fontweight='bold', color='darkblue')
+    ax.set_ylabel('Bill Amount', fontsize=12)
+    ax.set_xlabel('Customers', fontsize=12)
+    
+    ax.set_xticks(range(len(customers)))
+    ax.set_xticklabels(customers, rotation=45, ha='right', fontsize=10)
+
+    
+    
+    fig.tight_layout()
+    
+    img = io.BytesIO()
+    fig.savefig(img, format='png', bbox_inches='tight', facecolor='whitesmoke')
+    img.seek(0)
+    plt.close(fig)
+
+    return Response(img.getvalue(), mimetype='image/png')
+
+
+
+@app.route('/vehicle_chart')
+@login_required
+def vehicle_chart():
+    today = datetime.today().date()
+
+    result = (
+        db.session.query(
+            Bill.vehicle_no,
+            db.func.sum(Bill.grand_total).label('total_amount')
+        )
+        .filter(Bill.date == today)
+        .group_by(Bill.vehicle_no)
+        .all()
+    )
+  
+    vehicles = [row.vehicle_no for row in result]
+    amounts = [row.total_amount for row in result]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bars = ax.bar(vehicles, amounts, color='mediumslateblue', edgecolor='black', alpha=0.8)
+
+    ax.grid(axis='y', linestyle='--', alpha=0.7)
+
+    for bar in bars:
+        height = bar.get_height()
+        ax.annotate(f'{height:,.2f}',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 5),
+                    textcoords="offset points",
+                    ha='center', va='bottom',
+                    fontsize=9,
+                    color='black')
+
+    ax.set_title("Today's Vehicle-wise Billing", fontsize=16, fontweight='bold', color='darkblue')
+    ax.set_ylabel('Total Freight', fontsize=12)
+    ax.set_xlabel('Vehicles', fontsize=12)
+
+    ax.set_xticks(range(len(vehicles)))  
+    ax.set_xticklabels(vehicles, rotation=45, ha='right', fontsize=10)
+
+    fig.tight_layout()
+
+    img = io.BytesIO()
+    fig.savefig(img, format='png', bbox_inches='tight', facecolor='whitesmoke')
+    img.seek(0)
+    plt.close(fig)
+
+    return Response(img.getvalue(), mimetype='image/png')
+
+
+
 def get_next_billno():
     last_bill = (
         db.session.query(Bill)
@@ -261,12 +387,26 @@ def check_location():
 
     return jsonify({'exists': bool(location)})
 
+# @app.route('/check_item', methods=['POST'])
+# def check_item():
+#     data = request.get_json()
+#     item_name = data.get('item_name')  
+
+    
+#     item = db.session.execute(
+#         text("SELECT 1 FROM prodct WHERE item_name = :item_name"),
+#         {"item_name": item_name}
+#     ).fetchone()
+
+#     return jsonify({'exists': bool(item)})
+
 @app.route('/add-bill', methods=['GET', 'POST'])
 @login_required
 def add_bill():
     customers = Customer.query.order_by(Customer.name).all()
     locmst=db.session.execute(text("SELECT * FROM locmst ORDER BY ID")).fetchall()
     veh=db.session.execute(text("SELECT * FROM vehicle")).fetchall()
+    product=db.session.execute(text("SELECT * FROM prodct")).fetchall()
     if request.method == 'POST':
         try:
             bill_no = request.form['bill_no']
@@ -333,7 +473,8 @@ def add_bill():
         username=session['username'],
         customers=customers,
         locmst=locmst,
-        veh=veh
+        veh=veh,
+        product=product
     )
 
 @app.route('/bills')
@@ -357,6 +498,7 @@ def edit_bill(bill_no):
         return redirect(url_for('login'))
     bill = Bill.query.filter_by(bill_no=bill_no).first_or_404()
     customers = Customer.query.order_by(Customer.name).all()
+    product=db.session.execute(text("SELECT * FROM prodct")).fetchall()
     if request.method == 'POST':
         bill.date = request.form['date']
         bill.from_location = request.form['from_location']
@@ -422,7 +564,8 @@ def edit_bill(bill_no):
     items=items,
     edit_mode=True,
     username=session['username'],
-    customers=customers
+    customers=customers,
+    product=product
 )
 
 
@@ -465,21 +608,36 @@ def vehicle_cust_repo():
     today = datetime.today().strftime('%Y-%m-%d')
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
-    veh_no = request.args.get('veh_no')  # ✅ Fixed the incorrect method
-
+    veh_no = request.args.get('veh_no')  
     grouped_data = defaultdict(list)
 
     if start_date and end_date:
         try:
             if veh_no:
                 
+                # query = text("""
+                #     SELECT bill_no, vehicle_no, customer_name, grand_total, `date` AS bill_date
+                #     FROM bill
+                #     WHERE `date` BETWEEN :start_date AND :end_date
+                #     AND vehicle_no = :veh_no
+                #     ORDER BY vehicle_no
+                # """)
                 query = text("""
-                    SELECT bill_no, vehicle_no, customer_name, grand_total, `date` AS bill_date
-                    FROM bill
-                    WHERE `date` BETWEEN :start_date AND :end_date
-                    AND vehicle_no = :veh_no
-                    ORDER BY vehicle_no
-                """)
+                                SELECT 
+                                    b.bill_no, 
+                                    b.vehicle_no, 
+                                    b.customer_name, 
+                                    b.grand_total, 
+                                    b.`date` AS bill_date,
+                                    SUM(bi.qty) AS total_qty
+                                FROM bill b
+                                JOIN bill_item bi ON b.bill_no = bi.bill_id
+                                WHERE b.`date` BETWEEN :start_date AND :end_date
+                                AND b.vehicle_no = :veh_no
+                                GROUP BY b.bill_no, b.vehicle_no, b.customer_name, b.grand_total, b.`date`
+                                ORDER BY b.vehicle_no
+                            """)
+
                 params = {
                     'start_date': start_date,
                     'end_date': end_date,
@@ -487,12 +645,27 @@ def vehicle_cust_repo():
                 }
             else:
                 
+                # query = text("""
+                #     SELECT bill_no, vehicle_no, customer_name, grand_total, `date` AS bill_date
+                #     FROM bill
+                #     WHERE `date` BETWEEN :start_date AND :end_date
+                #     ORDER BY vehicle_no
+                # """)
                 query = text("""
-                    SELECT bill_no, vehicle_no, customer_name, grand_total, `date` AS bill_date
-                    FROM bill
-                    WHERE `date` BETWEEN :start_date AND :end_date
-                    ORDER BY vehicle_no
-                """)
+                                SELECT 
+                                    b.bill_no, 
+                                    b.vehicle_no, 
+                                    b.customer_name, 
+                                    b.grand_total, 
+                                    b.`date` AS bill_date,
+                                    SUM(bi.qty) AS total_qty
+                                FROM bill b
+                                JOIN bill_item bi ON b.bill_no = bi.bill_id
+                                WHERE b.`date` BETWEEN :start_date AND :end_date
+                                GROUP BY b.bill_no, b.vehicle_no, b.customer_name, b.grand_total, b.`date`
+                                ORDER BY b.vehicle_no
+                            """)
+
                 params = {
                     'start_date': start_date,
                     'end_date': end_date
@@ -505,14 +678,14 @@ def vehicle_cust_repo():
                     'bill_no':row.bill_no,
                     'customer_name': row.customer_name,
                     'grand_total': row.grand_total,
-                    'date': row.bill_date
+                    'date': row.bill_date,
+                    'total_qty': row.total_qty
                 })
 
         except ValueError as e:
             print(f"Date parsing error: {e}")
 
-    return render_template('vehicle_cust_repo.html', today=today, grouped_data=grouped_data)
-
+    return render_template('vehicle_cust_repo.html', today=today, grouped_data=grouped_data,username=session['username'])
 
 
 

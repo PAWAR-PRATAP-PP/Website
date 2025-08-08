@@ -142,20 +142,28 @@
                 </tr>
             </thead>
             <tbody>
-                {% for customer in customers %}
-                <tr>
-                    <td data-label="ID">{{ customer.id }}</td>
-                    <td data-label="Name">{{ customer.name }}</td>
-                    <td data-label="Email">{{ customer.email }}</td>
-                    <td data-label="Email">{{ customer.phone }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
+    {% for customer in customers %}
+    <tr>
+        <td data-label="ID">{{ customer.acno }}</td>
+        <td data-label="Name">{{ customer.name }}</td>
+        <td data-label="Email">{{ customer.email }}</td>
+        <td data-label="Phone">{{ customer.phone }}</td>
+        <td>
+            <a href="{{ url_for('edit_customer', cust_id=customer.acno) }}">Edit</a>
+
+
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+
         </table>
         {% else %}
         <p class="no-data">No customers found.</p>
         {% endif %}
+          <a href="{{ url_for('transport') }}" class="back-link">← Back</a>
     </div>
+  
 </body>
 
 </html>
